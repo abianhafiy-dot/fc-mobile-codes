@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FC Mobile Codes</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #0b0f14;
+    color: white;
+}
+
+header {
+    background: #111820;
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #26313d;
+}
+
+header h1 {
+    font-size: 28px;
+}
+
+header p {
+    color: #9ca8b5;
+    margin-top: 6px;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    padding: 25px 15px;
+}
+
+.search {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid #303b48;
+    background: #151c24;
+    color: white;
+    outline: none;
+    margin-bottom: 20px;
+}
+
+.code-card {
+    background: #151c24;
+    border: 1px solid #283441;
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 15px;
+}
+
+.code {
+    font-size: 21px;
+    font-weight: bold;
+    color: #55d6ff;
+    word-break: break-all;
+}
+
+.reward {
+    color: #c2cad3;
+    margin: 8px 0;
+}
+
+.status {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+.active {
+    background: #123d29;
+    color: #55e89a;
+}
+
+.expired {
+    background: #3d1717;
+    color: #ff7777;
+}
+
+button {
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-weight: bold;
+}
+
+.copy {
+    background: #28a9e0;
+    color: white;
+}
+
+.admin-btn {
+    background: #252f3b;
+    color: white;
+    margin-top: 20px;
+}
+
+.admin {
+    display: none;
+    background: #111820;
+    border: 1px solid #283441;
+    border-radius: 14px;
+    padding: 20px;
+    margin-top: 25px;
+}
+
+.admin input,
+.admin select {
+    width: 100%;
+    padding: 12px;
+    margin: 7px 0 12px;
+    background: #151c24;
+    border: 1px solid #303b48;
+    color: white;
+    border-radius: 8px;
+}
+
+.add {
+    background: #27c979;
+    color: white;
+    width: 100%;
+}
+
+.delete {
+    background: #e44848;
+    color: white;
+    margin-top: 10px;
+}
+
+.empty {
+    text-align: center;
+    color: #8c98a5;
+    padding: 30px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>⚽ FC MOBILE CODES</h1>
+    <p>Kumpulan kode redeem FC Mobile</p>
+</header>
+
+<div class="container">
+
+    <input
+        type="text"
+        id="search"
+        class="search"
+        placeholder="🔎 Cari kode..."
+        oninput="displayCodes()"
+    >
+
+    <div id="codes"></div>
+
+    <button class="admin-btn" onclick="openAdmin()">
+        🔐 Admin Panel
+    </button>
+
+    <div class="admin" id="adminPanel">
+
+        <h2>⚙️ Kelola Kode</h2>
+        <br>
+
+        <input id="newCode" placeholder="Kode redeem">
+
+        <input id="newReward" placeholder="Hadiah / reward">
+
+        <select id="newStatus">
+            <option value="active">Aktif</option>
+            <option value="expired">Expired</option>
+        </select>
+
+        <button class="add" onclick="addCode()">
+            ➕ Tambahkan Kode
+        </button>
+
+        <br><br>
+
+        <h3>Daftar Kode</h3>
+
+        <div id="adminCodes"></div>
+
+    </div>
+
+</div>
+
+<script>
+
+// ============================
+// DATA KODE
+// ============================
+
+let codes = JSON.parse(localStorage.getItem("fcCodes")) || [
+    {
+        code: "MIDSEASONBANGKOK",
+        reward: "Reward event",
+        status: "active"
+    }
+];
+
+
+// ============================
+// SIMPAN DATA
+// ============================
+
+function saveCodes() {
+    localStorage.setItem("fcCodes", JSON.stringify(codes));
+}
+
+
+// ============================
+// TAMPILKAN KODE
+// ============================
+
+function displayCodes() {
+
+    const container = document.getElementById("codes");
+    const search = document
+        .getElementById("search")
+        .value
+        .toLowerCase();
+
+    const filtered = codes.filter(item =>
+        item.code.toLowerCase().includes(search) ||
+        item.reward.toLowerCase().includes(search)
+    );
+
+    if (filtered.length === 0) {
+
+        container.innerHTML =
+            `<div class="empty">😕 Kode tidak ditemukan</div>`;
+
+        return;
+    }
+
+    container.innerHTML = "";
+
+    filtered.forEach(item => {
+
+        const card = document.createElement("div");
+
+        card.className = "code-card";
+
+        card.innerHTML = `
+            <div class="code">${escapeHTML(item.code)}</div>
+
+            <div class="reward">
+                🎁 ${escapeHTML(item.reward)}
+            </div>
+
+            <span class="status ${item.status}">
+                ${item.status === "active" ? "🟢 Aktif" : "🔴 Expired"}
+            </span>
+
+            <br>
+
+            <button class="copy"
+                onclick="copyCode('${escapeJS(item.code)}')">
+                📋 Copy Code
+            </button>
+        `;
+
+        container.appendChild(card);
+
+    });
+}
+
+
+// ============================
+// COPY CODE
+// ============================
+
+function copyCode(code) {
+
+    navigator.clipboard.writeText(code);
+
+    alert("✅ Kode berhasil disalin!");
+}
+
+
+// ============================
+// ADMIN
+// ============================
+
+function openAdmin() {
+
+    const panel = document.getElementById("adminPanel");
+
+    if (panel.style.display === "block") {
+        panel.style.display = "none";
+    } else {
+        panel.style.display = "block";
+        displayAdminCodes();
+    }
+}
+
+
+// ============================
+// TAMBAH KODE
+// ============================
+
+function addCode() {
+
+    const code =
+        document.getElementById("newCode").value.trim();
+
+    const reward =
+        document.getElementById("newReward").value.trim();
+
+    const status =
+        document.getElementById("newStatus").value;
+
+    if (!code || !reward) {
+
+        alert("⚠️ Isi kode dan reward dulu!");
+
+        return;
+    }
+
+    // Cek kode duplikat
+
+    const exists = codes.some(
+        item => item.code.toLowerCase() === code.toLowerCase()
+    );
+
+    if (exists) {
+
+        alert("⚠️ Kode itu sudah ada!");
+
+        return;
+    }
+
+    codes.unshift({
+        code: code.toUpperCase(),
+        reward: reward,
+        status: status
+    });
+
+    saveCodes();
+
+    document.getElementById("newCode").value = "";
+    document.getElementById("newReward").value = "";
+
+    displayCodes();
+    displayAdminCodes();
+
+    alert("✅ Kode berhasil ditambahkan!");
+}
+
+
+// ============================
+// ADMIN LIST
+// ============================
+
+function displayAdminCodes() {
+
+    const container =
+        document.getElementById("adminCodes");
+
+    container.innerHTML = "";
+
+    codes.forEach((item, index) => {
+
+        const div = document.createElement("div");
+
+        div.className = "code-card";
+
+        div.innerHTML = `
+            <b>${escapeHTML(item.code)}</b>
+
+            <p style="margin-top:6px;color:#aaa">
+                ${escapeHTML(item.reward)}
+            </p>
+
+            <button class="delete"
+                onclick="deleteCode(${index})">
+                🗑️ Hapus
+            </button>
+        `;
+
+        container.appendChild(div);
+
+    });
+}
+
+
+// ============================
+// HAPUS KODE
+// ============================
+
+function deleteCode(index) {
+
+    if (!confirm("Hapus kode ini?")) return;
+
+    codes.splice(index, 1);
+
+    saveCodes();
+
+    displayCodes();
+    displayAdminCodes();
+}
+
+
+// ============================
+// SECURITY HTML
+// ============================
+
+function escapeHTML(text) {
+
+    return text
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+
+function escapeJS(text) {
+
+    return text
+        .replaceAll("\\", "\\\\")
+        .replaceAll("'", "\\'");
+}
+
+
+// ============================
+// START
+// ============================
+
+displayCodes();
+
+</script>
+
+</body>
+  </html>
